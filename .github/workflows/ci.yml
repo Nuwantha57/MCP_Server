@@ -1,0 +1,19 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore
+        run: dotnet restore src/MCP.Server
+      - name: Build
+        run: dotnet build --no-restore src/MCP.Server -c Release
+      - name: Test
+        run: dotnet test --no-build tests/MCP.Server.Tests -v normal

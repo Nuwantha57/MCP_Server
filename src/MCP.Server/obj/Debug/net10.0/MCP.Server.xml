@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MCP.Server</name>
+    </assembly>
+    <members>
+        <member name="T:McpTools">
+            <summary>
+            MCP Tools with input validation following MCP standards
+            </summary>
+        </member>
+        <member name="M:McpTools.Echo(System.String)">
+            <summary>
+            Echoes back the input message
+            </summary>
+        </member>
+        <member name="M:McpTools.Reverse(System.String)">
+            <summary>
+            Reverses the input text
+            </summary>
+        </member>
+        <member name="M:McpTools.Add(System.Int32,System.Int32)">
+            <summary>
+            Adds two numbers together
+            </summary>
+        </member>
+        <member name="M:McpTools.GetDateTime(System.Nullable{System.Int32})">
+            <summary>
+            Gets the current server date and time
+            </summary>
+        </member>
+        <member name="M:McpTools.AnalyzeText(System.String)">
+            <summary>
+            Calculates basic string statistics
+            </summary>
+        </member>
+    </members>
+</doc>

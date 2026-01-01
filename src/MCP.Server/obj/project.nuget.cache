@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "dgSpecHash": "wK1f3SrMhMc=",
+  "success": true,
+  "projectFilePath": "C:\\MCP_Server\\src\\MCP.Server\\MCP.Server.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\microsoft.extensions.ai.abstractions\\10.0.0\\microsoft.extensions.ai.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\microsoft.extensions.dependencymodel\\7.0.0\\microsoft.extensions.dependencymodel.7.0.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\microsoft.openapi\\1.2.3\\microsoft.openapi.1.2.3.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\modelcontextprotocol\\0.5.0-preview.1\\modelcontextprotocol.0.5.0-preview.1.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\modelcontextprotocol.aspnetcore\\0.5.0-preview.1\\modelcontextprotocol.aspnetcore.0.5.0-preview.1.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\modelcontextprotocol.core\\0.5.0-preview.1\\modelcontextprotocol.core.0.5.0-preview.1.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\serilog\\2.12.0\\serilog.2.12.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\serilog.aspnetcore\\7.0.0\\serilog.aspnetcore.7.0.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\serilog.extensions.hosting\\7.0.0\\serilog.extensions.hosting.7.0.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\serilog.extensions.logging\\7.0.0\\serilog.extensions.logging.7.0.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\serilog.formatting.compact\\1.1.0\\serilog.formatting.compact.1.1.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\serilog.settings.configuration\\7.0.0\\serilog.settings.configuration.7.0.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\serilog.sinks.console\\4.0.1\\serilog.sinks.console.4.0.1.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\serilog.sinks.debug\\2.0.0\\serilog.sinks.debug.2.0.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\serilog.sinks.file\\5.0.0\\serilog.sinks.file.5.0.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\swashbuckle.aspnetcore\\6.5.0\\swashbuckle.aspnetcore.6.5.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.5.0\\swashbuckle.aspnetcore.swagger.6.5.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.5.0\\swashbuckle.aspnetcore.swaggergen.6.5.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\6.5.0\\swashbuckle.aspnetcore.swaggerui.6.5.0.nupkg.sha512"
+  ],
+  "logs": []
+}
