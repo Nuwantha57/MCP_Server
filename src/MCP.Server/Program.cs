@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using ModelContextProtocol.AspNetCore;
 using ModelContextProtocol.Server;
 using Serilog;
+#pragma warning disable CS1591 // Missing XML comment
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,8 +42,10 @@ builder.Services.AddSwaggerGen(c =>
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
         Name = "x-api-key",
-        Description = "API Key authentication"
+        Description = "API Key for authentication"
     });
+
+    // Apply security requirement to all operations
     c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
@@ -54,7 +57,7 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "ApiKey"
                 }
             },
-            Array.Empty<string>()
+            new string[] { }
         }
     });
 });
@@ -100,6 +103,15 @@ if (requireHttps)
 // Enable CORS
 app.UseCors("McpPolicy");
 
+// Enable Swagger BEFORE security middleware so it's always accessible
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MCP Server API v1");
+    c.DisplayRequestDuration();
+    c.DefaultModelsExpandDepth(2);
+});
+
 // Security middleware: API key authentication for protected endpoints
 app.Use(async (ctx, next) =>
 {
@@ -118,11 +130,16 @@ app.Use(async (ctx, next) =>
 
     // Check API key for protected endpoints
     var configKey = app.Configuration["Security:ApiKey"];
+    Log.Information("DEBUG: ConfigKey={ConfigKey}, Length={Length}",
+        string.IsNullOrEmpty(configKey) ? "EMPTY" : "SET", configKey?.Length ?? 0);
+
     if (!string.IsNullOrEmpty(configKey))
     {
         // Check for API key in header
         if (!ctx.Request.Headers.TryGetValue("x-api-key", out var suppliedKey) || suppliedKey != configKey)
         {
+            Log.Warning("DEBUG: SuppliedKey={SuppliedKey}, Mismatch={Mismatch}",
+                suppliedKey.ToString(), suppliedKey != configKey);
             // Log unauthorized access attempt
             Log.Warning("Unauthorized access attempt to {Path} from {IP}",
                 path, ctx.Connection.RemoteIpAddress);
@@ -145,14 +162,24 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
 // Map MCP SSE endpoints (/sse for connection, /message for messages)
 app.MapMcp();
+
+// Add REST endpoints for tools (for easier testing via Swagger)
+app.MapPost("/api/tools/echo", (EchoRequest req) => Results.Ok(new { result = McpTools.Echo(req.message ?? "") }))
+    .WithName("Echo Tool");
+
+app.MapPost("/api/tools/reverse", (ReverseRequest req) => Results.Ok(new { result = McpTools.Reverse(req.text ?? "") }))
+    .WithName("Reverse Tool");
+
+app.MapPost("/api/tools/add", (AddRequest req) => Results.Ok(new { result = McpTools.Add(req.a, req.b) }))
+    .WithName("Add Tool");
+
+app.MapPost("/api/tools/getDateTime", (GetDateTimeRequest req) => Results.Ok(McpTools.GetDateTime(req.offsetHours)))
+    .WithName("Get DateTime");
+
+app.MapPost("/api/tools/analyzeText", (AnalyzeTextRequest req) => Results.Ok(McpTools.AnalyzeText(req.text ?? "")))
+    .WithName("Analyze Text");
 
 app.MapGet("/info", () => Results.Ok(new { service = "MCP Server", version = "0.1.0" }));
 app.MapHealthChecks("/health");
@@ -289,3 +316,10 @@ public class McpTools
         };
     }
 }
+
+// Request DTOs for REST endpoints
+public class EchoRequest { public string? message { get; set; } }
+public class ReverseRequest { public string? text { get; set; } }
+public class AddRequest { public int a { get; set; } public int b { get; set; } }
+public class GetDateTimeRequest { public int? offsetHours { get; set; } }
+public class AnalyzeTextRequest { public string? text { get; set; } }
