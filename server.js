@@ -94,6 +94,32 @@ const tools = [
       required: ['text'],
     },
   },
+  {
+    name: 'getMeetingTime',
+    description: 'Finds optimal meeting time for people in two different countries based on their timezones',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        country1: {
+          type: 'string',
+          description: 'First country name or timezone (e.g., US, India, America/New_York)'
+        },
+        country2: {
+          type: 'string',
+          description: 'Second country name or timezone (e.g., UK, Japan, Europe/London)'
+        },
+        preferredTime: {
+          type: 'string',
+          description: 'Preferred time in country1 in 24-hour format (e.g., 14:00). Optional.'
+        },
+        meetingDate: {
+          type: 'string',
+          description: 'Date for the meeting in YYYY-MM-DD format (e.g., 2026-10-02). Optional, defaults to today.'
+        }
+      },
+      required: ['country1', 'country2'],
+    },
+  },
 ];
 
 // Register tools/list handler with SDK schema

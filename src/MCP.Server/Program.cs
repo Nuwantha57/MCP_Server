@@ -181,6 +181,10 @@ app.MapPost("/api/tools/getDateTime", (GetDateTimeRequest req) => Results.Ok(Mcp
 app.MapPost("/api/tools/analyzeText", (AnalyzeTextRequest req) => Results.Ok(McpTools.AnalyzeText(req.text ?? "")))
     .WithName("Analyze Text");
 
+app.MapPost("/api/tools/getMeetingTime", (GetMeetingTimeRequest req) => 
+    Results.Ok(McpTools.GetMeetingTime(req.country1 ?? "", req.country2 ?? "", req.preferredTime, req.meetingDate)))
+    .WithName("Get Meeting Time");
+
 app.MapGet("/info", () => Results.Ok(new { service = "MCP Server", version = "0.1.0" }));
 app.MapHealthChecks("/health");
 
@@ -315,6 +319,178 @@ public class McpTools
             longestWord = words.OrderByDescending(w => w.Length).FirstOrDefault() ?? ""
         };
     }
+
+    /// <summary>
+    /// Gets meeting time for 2 countries considering their timezones
+    /// </summary>
+    [McpServerTool, Description("Finds optimal meeting time for people in two different countries based on their timezones")]
+    public static object GetMeetingTime(
+        [Description("First country name or timezone (e.g., 'US', 'America/New_York')")] string country1,
+        [Description("Second country name or timezone (e.g., 'India', 'Asia/Kolkata')")] string country2,
+        [Description("Preferred time in country1 (24-hour format, e.g., '14:00'). If not provided, uses current time")] string? preferredTime = null,
+        [Description("Date for meeting (YYYY-MM-DD format, e.g., '2026-10-02'). If not provided, uses today's date")] string? meetingDate = null)
+    {
+        // Timezone mappings for common countries
+        var timezoneMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "US", "America/New_York" },
+            { "USA", "America/New_York" },
+            { "UK", "Europe/London" },
+            { "UK/London", "Europe/London" },
+            { "Europe", "Europe/London" },
+            { "India", "Asia/Kolkata" },
+            { "Japan", "Asia/Tokyo" },
+            { "Australia", "Australia/Sydney" },
+            { "China", "Asia/Shanghai" },
+            { "Germany", "Europe/Berlin" },
+            { "France", "Europe/Paris" },
+            { "Singapore", "Asia/Singapore" },
+            { "Dubai", "Asia/Dubai" },
+            { "Brazil", "America/Sao_Paulo" }
+        };
+
+        // Resolve timezone for country1
+        var tz1 = timezoneMap.ContainsKey(country1) ? timezoneMap[country1] : country1;
+        var tz2 = timezoneMap.ContainsKey(country2) ? timezoneMap[country2] : country2;
+
+        try
+        {
+            var timeZone1 = TimeZoneInfo.FindSystemTimeZoneById(tz1);
+            var timeZone2 = TimeZoneInfo.FindSystemTimeZoneById(tz2);
+
+            // Get current UTC time or use provided date
+            DateTime baseTime;
+            
+            if (!string.IsNullOrEmpty(meetingDate))
+            {
+                // Parse provided date
+                if (!DateTime.TryParse(meetingDate, out var parsedDate))
+                {
+                    throw new ArgumentException("Meeting date must be in YYYY-MM-DD format (e.g., '2026-10-02')", nameof(meetingDate));
+                }
+                baseTime = parsedDate;
+            }
+            else
+            {
+                baseTime = DateTime.UtcNow;
+            }
+
+            // Parse preferred time if provided, otherwise use 00:00
+            if (!string.IsNullOrEmpty(preferredTime))
+            {
+                var parts = preferredTime.Split(':');
+                if (parts.Length != 2 || !int.TryParse(parts[0], out var hours) || !int.TryParse(parts[1], out var minutes))
+                {
+                    throw new ArgumentException("Preferred time must be in HH:mm format (24-hour)", nameof(preferredTime));
+                }
+                baseTime = baseTime.Date.AddHours(hours).AddMinutes(minutes);
+            }
+            else
+            {
+                baseTime = baseTime.Date; // Midnight UTC
+            }
+
+            // Get holidays from environment variables
+            var holidays1Str = Environment.GetEnvironmentVariable($"HOLIDAYS_{country1.ToUpper()}") ?? "";
+            var holidays2Str = Environment.GetEnvironmentVariable($"HOLIDAYS_{country2.ToUpper()}") ?? "";
+            
+            var holidays1 = ParseHolidays(holidays1Str);
+            var holidays2 = ParseHolidays(holidays2Str);
+
+            // Convert to both timezones
+            var time1 = TimeZoneInfo.ConvertTime(baseTime, TimeZoneInfo.Utc, timeZone1);
+            var time2 = TimeZoneInfo.ConvertTime(baseTime, TimeZoneInfo.Utc, timeZone2);
+
+            // Check for holidays
+            var isHoliday1 = holidays1.Contains(time1.Date);
+            var isHoliday2 = holidays2.Contains(time2.Date);
+            var holidayStatus = "";
+
+            if (isHoliday1 && isHoliday2)
+            {
+                holidayStatus = $"⚠️ BOTH COUNTRIES ON HOLIDAY ({time1:MMM dd}) - Consider next business day";
+            }
+            else if (isHoliday1)
+            {
+                holidayStatus = $"⚠️ {country1} on holiday ({time1:MMM dd})";
+            }
+            else if (isHoliday2)
+            {
+                holidayStatus = $"⚠️ {country2} on holiday ({time2:MMM dd})";
+            }
+
+            // Find next available day (skip weekends and holidays)
+            var nextAvailableDate1 = FindNextBusinessDay(time1.Date, holidays1);
+            var nextAvailableDate2 = FindNextBusinessDay(time2.Date, holidays2);
+
+            return new
+            {
+                country1 = country1,
+                country2 = country2,
+                timezone1 = tz1,
+                timezone2 = tz2,
+                time1 = time1.ToString("HH:mm:ss"),
+                time2 = time2.ToString("HH:mm:ss"),
+                date1 = time1.ToString("yyyy-MM-dd (ddd)"),
+                date2 = time2.ToString("yyyy-MM-dd (ddd)"),
+                utcTime = baseTime.ToString("o"),
+                isHoliday1 = isHoliday1,
+                isHoliday2 = isHoliday2,
+                holidayStatus = holidayStatus,
+                nextBusinessDay1 = nextAvailableDate1.ToString("yyyy-MM-dd (ddd)"),
+                nextBusinessDay2 = nextAvailableDate2.ToString("yyyy-MM-dd (ddd)"),
+                message = $"When it's {time1:HH:mm} in {country1}, it's {time2:HH:mm} in {country2}" + (string.IsNullOrEmpty(holidayStatus) ? "" : $". {holidayStatus}")
+            };
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            throw new ArgumentException($"Timezone not found: {tz1} or {tz2}. Use valid timezone names (e.g., 'America/New_York', 'Europe/London')", nameof(country1));
+        }
+    }
+
+    /// <summary>
+    /// Parse holiday dates from environment variable string
+    /// Format: YYYY-MM-DD,YYYY-MM-DD,YYYY-MM-DD
+    /// </summary>
+    private static HashSet<DateTime> ParseHolidays(string holidaysStr)
+    {
+        var holidays = new HashSet<DateTime>();
+        if (string.IsNullOrEmpty(holidaysStr))
+            return holidays;
+
+        var dates = holidaysStr.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var dateStr in dates)
+        {
+            if (DateTime.TryParse(dateStr.Trim(), out var date))
+            {
+                holidays.Add(date.Date);
+            }
+        }
+        return holidays;
+    }
+
+    /// <summary>
+    /// Find the next business day (Monday-Friday) that is not a holiday
+    /// </summary>
+    private static DateTime FindNextBusinessDay(DateTime date, HashSet<DateTime> holidays)
+    {
+        var current = date;
+        // Check up to 30 days ahead
+        for (int i = 0; i < 30; i++)
+        {
+            // Skip weekends (Saturday=6, Sunday=0)
+            if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
+            {
+                // Skip holidays
+                if (!holidays.Contains(current))
+                {
+                    return current;
+                }
+            }
+            current = current.AddDays(1);
+        }
+        return current; // Fallback after 30 days
+    }
 }
 
 // Request DTOs for REST endpoints
@@ -323,3 +499,4 @@ public class ReverseRequest { public string? text { get; set; } }
 public class AddRequest { public int a { get; set; } public int b { get; set; } }
 public class GetDateTimeRequest { public int? offsetHours { get; set; } }
 public class AnalyzeTextRequest { public string? text { get; set; } }
+public class GetMeetingTimeRequest { public string? country1 { get; set; } public string? country2 { get; set; } public string? preferredTime { get; set; } public string? meetingDate { get; set; } }

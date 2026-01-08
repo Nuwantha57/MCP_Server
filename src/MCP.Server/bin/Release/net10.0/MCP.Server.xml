@@ -34,5 +34,21 @@
             Calculates basic string statistics
             </summary>
         </member>
+        <member name="M:McpTools.GetMeetingTime(System.String,System.String,System.String,System.String)">
+            <summary>
+            Gets meeting time for 2 countries considering their timezones
+            </summary>
+        </member>
+        <member name="M:McpTools.ParseHolidays(System.String)">
+            <summary>
+            Parse holiday dates from environment variable string
+            Format: YYYY-MM-DD,YYYY-MM-DD,YYYY-MM-DD
+            </summary>
+        </member>
+        <member name="M:McpTools.FindNextBusinessDay(System.DateTime,System.Collections.Generic.HashSet{System.DateTime})">
+            <summary>
+            Find the next business day (Monday-Friday) that is not a holiday
+            </summary>
+        </member>
     </members>
 </doc>
