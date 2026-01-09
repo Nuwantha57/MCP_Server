@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "mcp-lambda-server": {
+      "command": "node",
+      "args": ["c:\\MCP_Server\\bridge.js"],
+      "env": {},
+      "description": "MCP Server connected to AWS Lambda with holiday detection"
+    }
+  }
+}
