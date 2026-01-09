@@ -199,9 +199,19 @@ async function handleLine(line) {
           sendError(message.id, -32602, 'Missing tool name in params');
           return;
         }
-        console.error(`[BRIDGE] Calling Lambda: ${name}`);
-        const result = await callLambda(name, args);
-        sendResponse(message.id, result);
+        console.error(`[BRIDGE] Calling Lambda: ${name} with args: ${JSON.stringify(args)}`);
+        const lambdaResult = await callLambda(name, args);
+        console.error(`[BRIDGE] Lambda returned: ${Object.keys(lambdaResult).join(', ')}`);
+        
+        // Send Lambda result directly as array of content blocks for MCP
+        const resultContent = [
+          {
+            type: 'text',
+            text: JSON.stringify(lambdaResult, null, 2)
+          }
+        ];
+        
+        sendResponse(message.id, { content: resultContent });
       } catch (error) {
         console.error(`[BRIDGE] Tool error: ${error.message}`);
         sendError(message.id, -32603, `Error calling tool: ${error.message}`);
