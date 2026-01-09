@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: MCP Server Lambda Function with Holiday Support for getMeetingTime
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: dotnet8
+    Environment:
+      Variables:
+        HOLIDAYS_UK: '[{"start":"2022-12-25T00:00+00:00","end":"2022-12-28T23:59+00:00"},{"start":"2023-01-01T00:00+00:00","end":"2023-01-02T23:59+00:00"}]'
+        HOLIDAYS_US: '[{"start":"2022-12-25T00:00-05:00","end":"2022-12-26T23:59-05:00"},{"start":"2023-01-01T00:00-05:00","end":"2023-01-02T23:59-05:00"}]'
+        HOLIDAYS_INDIA: '[{"start":"2022-12-25T00:00+05:30","end":"2022-12-26T23:59+05:30"}]'
+        HOLIDAYS_AUSTRALIA: '[{"start":"2022-12-25T00:00+11:00","end":"2022-12-27T23:59+11:00"}]'
+        HOLIDAYS_JAPAN: '[{"start":"2022-12-25T00:00+09:00","end":"2022-12-26T23:59+09:00"}]'
+Resources:
+  McpServerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: mcp-server-function
+      CodeUri: McpServerFunction
+      Handler: MCP.Server::MCP.Server.LambdaEntrypoint::HandleAsync
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      Events:
+        ToolsList:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: McpServerApi
+            Path: /api/tools/{proxy+}
+            Method: POST
+        Health:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: McpServerApi
+            Path: /health
+            Method: GET
+    Metadata:
+      SamResourceId: McpServerFunction
+  McpServerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: mcp-server-api
+      StageName: prod
+      MethodSettings:
+      - ResourcePath: /*
+        HttpMethod: '*'
+        LoggingLevel: INFO
+        DataTraceEnabled: true
+        MetricsEnabled: true
+  McpServerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Sub: /aws/lambda/${McpServerFunction}
+      RetentionInDays: 7
+Outputs:
+  McpServerFunctionArn:
+    Description: ARN of the MCP Server Lambda function
+    Value:
+      Fn::GetAtt:
+      - McpServerFunction
+      - Arn
+  McpServerApiEndpoint:
+    Description: API Gateway endpoint URL for the MCP Server
+    Value:
+      Fn::Sub: https://${McpServerApi}.execute-api.${AWS::Region}.amazonaws.com/prod
+  GetMeetingTimeEndpoint:
+    Description: Direct endpoint for getMeetingTime tool
+    Value:
+      Fn::Sub: https://${McpServerApi}.execute-api.${AWS::Region}.amazonaws.com/prod/api/tools/getMeetingTime

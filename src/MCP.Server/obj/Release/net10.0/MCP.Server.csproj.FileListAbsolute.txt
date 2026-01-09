@@ -50,3 +50,6 @@ C:\MCP_Server\src\MCP.Server\obj\Release\net10.0\MCP.Server.xml
 C:\MCP_Server\src\MCP.Server\obj\Release\net10.0\MCP.Server.pdb
 C:\MCP_Server\src\MCP.Server\obj\Release\net10.0\MCP.Server.genruntimeconfig.cache
 C:\MCP_Server\src\MCP.Server\obj\Release\net10.0\ref\MCP.Server.dll
+C:\MCP_Server\src\MCP.Server\bin\Release\net10.0\Amazon.Lambda.APIGatewayEvents.dll
+C:\MCP_Server\src\MCP.Server\bin\Release\net10.0\Amazon.Lambda.Core.dll
+C:\MCP_Server\src\MCP.Server\bin\Release\net10.0\Amazon.Lambda.Serialization.SystemTextJson.dll

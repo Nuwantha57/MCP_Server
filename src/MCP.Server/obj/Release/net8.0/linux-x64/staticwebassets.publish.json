@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "Ux0/w7RwrZPXdJboEnbMeNMFNhzYyKOcjevzzZCOMTA=",
+  "Source": "MCP.Server",
+  "BasePath": "_content/MCP.Server",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

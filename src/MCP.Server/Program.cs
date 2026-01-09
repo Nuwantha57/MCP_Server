@@ -450,7 +450,9 @@ public class McpTools
 
     /// <summary>
     /// Parse holiday dates from environment variable string
-    /// Format: YYYY-MM-DD,YYYY-MM-DD,YYYY-MM-DD
+    /// Supports two formats:
+    /// 1. Simple dates: YYYY-MM-DD,YYYY-MM-DD,YYYY-MM-DD
+    /// 2. Complex JSON: [{"start":"2022-12-25T05:00+13:00","end":"2022-12-28T18:00+13:00"}]
     /// </summary>
     private static HashSet<DateTime> ParseHolidays(string holidaysStr)
     {
@@ -458,6 +460,42 @@ public class McpTools
         if (string.IsNullOrEmpty(holidaysStr))
             return holidays;
 
+        try
+        {
+            // Try parsing as JSON array first (complex format)
+            if (holidaysStr.TrimStart().StartsWith("["))
+            {
+                var jsonElement = JsonSerializer.Deserialize<JsonElement>(holidaysStr);
+                if (jsonElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in jsonElement.EnumerateArray())
+                    {
+                        if (item.TryGetProperty("start", out var startProp) && 
+                            item.TryGetProperty("end", out var endProp))
+                        {
+                            if (DateTime.TryParse(startProp.GetString(), out var startDate) &&
+                                DateTime.TryParse(endProp.GetString(), out var endDate))
+                            {
+                                // Add all days between start and end (inclusive)
+                                var currentDate = startDate.Date;
+                                while (currentDate <= endDate.Date)
+                                {
+                                    holidays.Add(currentDate);
+                                    currentDate = currentDate.AddDays(1);
+                                }
+                            }
+                        }
+                    }
+                }
+                return holidays;
+            }
+        }
+        catch
+        {
+            // Fall through to simple date parsing if JSON parsing fails
+        }
+
+        // Parse as simple comma-separated dates
         var dates = holidaysStr.Split(',', StringSplitOptions.RemoveEmptyEntries);
         foreach (var dateStr in dates)
         {

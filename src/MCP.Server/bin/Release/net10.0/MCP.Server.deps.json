@@ -8,6 +8,9 @@
     ".NETCoreApp,Version=v10.0": {
       "MCP.Server/1.0.0": {
         "dependencies": {
+          "Amazon.Lambda.APIGatewayEvents": "2.7.3",
+          "Amazon.Lambda.Core": "2.2.0",
+          "Amazon.Lambda.Serialization.SystemTextJson": "2.3.0",
           "ModelContextProtocol": "0.5.0-preview.1",
           "ModelContextProtocol.AspNetCore": "0.5.0-preview.1",
           "Serilog.AspNetCore": "7.0.0",
@@ -15,6 +18,33 @@
         },
         "runtime": {
           "MCP.Server.dll": {}
+        }
+      },
+      "Amazon.Lambda.APIGatewayEvents/2.7.3": {
+        "runtime": {
+          "lib/net8.0/Amazon.Lambda.APIGatewayEvents.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.2.0.0"
+          }
+        }
+      },
+      "Amazon.Lambda.Core/2.2.0": {
+        "runtime": {
+          "lib/net8.0/Amazon.Lambda.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Amazon.Lambda.Serialization.SystemTextJson/2.3.0": {
+        "dependencies": {
+          "Amazon.Lambda.Core": "2.2.0"
+        },
+        "runtime": {
+          "lib/net6.0/Amazon.Lambda.Serialization.SystemTextJson.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
         }
       },
       "Microsoft.Extensions.AI.Abstractions/10.0.0": {
@@ -222,6 +252,27 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "Amazon.Lambda.APIGatewayEvents/2.7.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-CXmiXdwuSXSJA0YH+7OJqG2uGDnhDcKkN2ei2u2/kdRFK+RH8JC5GbdechdJoldpogxHdHy12TuAfqqKSC67Nw==",
+      "path": "amazon.lambda.apigatewayevents/2.7.3",
+      "hashPath": "amazon.lambda.apigatewayevents.2.7.3.nupkg.sha512"
+    },
+    "Amazon.Lambda.Core/2.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-DHqKeD1CYocP0t1dJC/NaXfu+5k6AoqnQ1Hlu/J2mXpLpCyeJfY+tIqT5fpruDarUlU0NtdIH8zSkCjeinyb1A==",
+      "path": "amazon.lambda.core/2.2.0",
+      "hashPath": "amazon.lambda.core.2.2.0.nupkg.sha512"
+    },
+    "Amazon.Lambda.Serialization.SystemTextJson/2.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-qgFCDJp5lyUNqCq1z18U7fZ/+rmMyw6RJf9nKfnJrf79YupDj02klQAjxymEYN66NykWXyc68SGkow6fy53hfg==",
+      "path": "amazon.lambda.serialization.systemtextjson/2.3.0",
+      "hashPath": "amazon.lambda.serialization.systemtextjson.2.3.0.nupkg.sha512"
     },
     "Microsoft.Extensions.AI.Abstractions/10.0.0": {
       "type": "package",

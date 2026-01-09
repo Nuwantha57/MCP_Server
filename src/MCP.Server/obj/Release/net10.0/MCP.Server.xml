@@ -4,6 +4,12 @@
         <name>MCP.Server</name>
     </assembly>
     <members>
+        <member name="T:MCP.Server.LambdaEntrypoint">
+            <summary>
+            AWS Lambda handler for the MCP Server
+            Simplified version that wraps the existing McpTools
+            </summary>
+        </member>
         <member name="T:McpTools">
             <summary>
             MCP Tools with input validation following MCP standards
@@ -42,7 +48,9 @@
         <member name="M:McpTools.ParseHolidays(System.String)">
             <summary>
             Parse holiday dates from environment variable string
-            Format: YYYY-MM-DD,YYYY-MM-DD,YYYY-MM-DD
+            Supports two formats:
+            1. Simple dates: YYYY-MM-DD,YYYY-MM-DD,YYYY-MM-DD
+            2. Complex JSON: [{"start":"2022-12-25T05:00+13:00","end":"2022-12-28T18:00+13:00"}]
             </summary>
         </member>
         <member name="M:McpTools.FindNextBusinessDay(System.DateTime,System.Collections.Generic.HashSet{System.DateTime})">
