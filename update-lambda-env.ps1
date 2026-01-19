@@ -1,83 +1,61 @@
-#!/usr/bin/env pwsh
-<#
-.SYNOPSIS
-Update AWS Lambda function environment variables with holiday configurations
-
-.DESCRIPTION
-Reads environment-variables.json and updates the Lambda function with the holiday configurations.
-This allows the getMeetingTime tool to avoid scheduling meetings on holidays.
-
-.PARAMETER FunctionName
-Name of the Lambda function (default: mcp-server-function)
-
-.PARAMETER AWSProfile
-AWS profile to use (default: default)
-
-.PARAMETER AWSRegion
-AWS region (default: us-east-1)
-
-.PARAMETER VariablesFile
-Path to environment-variables.json (default: ./environment-variables.json)
-
-.EXAMPLE
-./update-lambda-env.ps1 -FunctionName mcp-server-function -AWSRegion us-west-2
-#>
+#!/usr/bin/env powershell
+# Update Lambda environment variables with holiday dates
+# The holiday dates are stored as JSON in the format: [{"start":"YYYY-MM-DDTHH:MM+TZ:TZ","end":"..."}]
 
 param(
-    [string]$FunctionName = "mcp-server-function",
-    [string]$AWSProfile = "default",
-    [string]$AWSRegion = "us-east-1",
-    [string]$VariablesFile = "./environment-variables.json"
+    [string]$Country = "US",
+    [string]$StartDate = "2026-12-20",
+    [string]$EndDate = "2026-12-22",
+    [string]$Timezone = "-05:00"
 )
 
-$ErrorActionPreference = "Stop"
+$FunctionName = "mcp-server-function"
+$Region = "eu-north-1"
 
-Write-Host "=== Update Lambda Environment Variables ===" -ForegroundColor Cyan
+Write-Host "[UPDATE] Country: $Country, Dates: $StartDate to $EndDate, TZ: $Timezone"
 
-# Check if file exists
-if (-not (Test-Path $VariablesFile)) {
-    Write-Error "Variables file not found: $VariablesFile"
-    exit 1
-}
+# Build the JSON holiday entry
+$holidayJson = @{
+    start = "$($StartDate)T00:00$Timezone"
+    end = "$($EndDate)T23:59$Timezone"
+} | ConvertTo-Json -Compress
 
-# Load variables
-Write-Host "Loading environment variables from $VariablesFile..." -ForegroundColor Yellow
-$envVars = Get-Content $VariablesFile | ConvertFrom-Json
+$holidayKey = "HOLIDAYS_$Country"
 
-# Build environment string for AWS CLI
-$envDict = @{}
-foreach ($prop in $envVars.PSObject.Properties) {
-    $envDict[$prop.Name] = $prop.Value
-}
+Write-Host "[UPDATE] Setting $holidayKey to: $holidayJson"
 
-Write-Host "Found $($envDict.Count) environment variables" -ForegroundColor Green
+# Update the environment variable
+$updateCmd = "aws lambda update-function-configuration --function-name $FunctionName --region $Region --environment `"Variables={$holidayKey='[$holidayJson]'}`" --output json"
 
-# Update Lambda function
-Write-Host "`nUpdating Lambda function: $FunctionName" -ForegroundColor Cyan
+Write-Host "[UPDATE] Running: $updateCmd"
 
-$envJson = ConvertTo-Json $envDict -Compress
-Write-Host "Sending update command..." -ForegroundColor Yellow
-
-aws lambda update-function-configuration `
-    --function-name $FunctionName `
-    --region $AWSRegion `
-    --profile $AWSProfile `
-    --environment "Variables=$envJson" | Out-Null
-
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "✓ Environment variables updated successfully!" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "Updated variables:" -ForegroundColor Cyan
-    $envDict.Keys | ForEach-Object {
-        Write-Host "  - $_" -ForegroundColor White
+try {
+    $result = Invoke-Expression $updateCmd 2>&1
+    
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "[UPDATE] Success!"
+        @{
+            success = $true
+            message = "Holiday dates updated for $Country"
+            country = $Country
+            startDate = $StartDate
+            endDate = $EndDate
+            timezone = $Timezone
+        } | ConvertTo-Json
+    } else {
+        Write-Host "[UPDATE] Failed: $result"
+        @{
+            success = $false
+            error = $result
+        } | ConvertTo-Json
+        exit 1
     }
-    Write-Host ""
-    Write-Host "Note: Lambda may take a few seconds to apply the changes." -ForegroundColor Yellow
-} else {
-    Write-Error "Failed to update Lambda function"
+}
+catch {
+    Write-Host "[UPDATE] Error: $_"
+    @{
+        success = $false
+        error = $_.Exception.Message
+    } | ConvertTo-Json
     exit 1
 }
-
-# Optional: Test the function
-Write-Host "`nTo test the function, use:" -ForegroundColor Cyan
-Write-Host "aws lambda invoke --function-name $FunctionName --region $AWSRegion response.json" -ForegroundColor White
