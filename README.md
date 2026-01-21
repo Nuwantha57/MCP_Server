@@ -1,121 +1,706 @@
-```
+# MCP Server - AWS Lambda Holiday Management via Claude Desktop
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [System Requirements](#system-requirements)
+3. [Quick Start](#quick-start)
+4. [AWS Lambda Deployment](#aws-lambda-deployment)
+5. [Holiday Management via Claude](#holiday-management-via-claude)
+6. [Claude Desktop Usage Examples](#claude-desktop-usage-examples)
+7. [How It Works](#how-it-works)
+8. [Configuration](#configuration)
+
+---
+
+## Overview
+
+MCP Server is a **serverless AWS Lambda function** that enables **dynamic holiday management** through Claude Desktop. Simply type natural language commands in Claude, and the holidays are updated instantly in AWS Lambda environment variables - **no code changes or redeployment required**.
+
+### What You Can Do
+
+**Single Country Update:**
 
 ```
+Claude Desktop Input: "Update US holidays to December 23-27, 2026 with timezone -05:00"
+Result: US holiday environment variable updated in Lambda
+```
 
-# MCP Server - Claude Desktop Integration
+**Multiple Countries at Once:**
 
-Production-ready MCP (Model Context Protocol) server that connects Claude Desktop to AWS Lambda, enabling dynamic holiday management and timezone-aware meeting scheduling.
+```
+Claude Desktop Input: "Update US holidays to December 23-27, 2026 with timezone -05:00 
+and Update UK holidays to December 20-25, 2026 with timezone +00:00"
+Result: Both US and UK holidays updated simultaneously
+```
 
-## 🚀 Quick Start
+**Append New Holiday:**
 
-### Prerequisites
+```
+Claude Desktop Input: "Append December 31, 2026 as a holiday to existing US holidays with timezone -05:00"
+Result: New holiday added to existing US holiday list
+```
 
-- Node.js v22+ installed
-- AWS Lambda function deployed
-- AWS credentials (Access Key ID, Secret Access Key)
+---
+
+## System Requirements
+
+### AWS Prerequisites
+
+| Requirement               | Details                                |
+| ------------------------- | -------------------------------------- |
+| **AWS Account**     | Active account with Lambda permissions |
+| **AWS CLI**         | v2.0+ installed and configured         |
+| **SAM CLI**         | v1.60+ (optional, for local testing)   |
+| **.NET SDK**        | .NET 8.0 or later (for building)       |
+| **IAM Permissions** | Lambda, API Gateway, CloudFormation    |
+
+### Local Build Tools
+
+- Windows 10+, macOS 11+, or Linux
+- PowerShell (for scripts)
+- 500 MB disk space
+
+---
+
+## Quick Start
+
+```powershell
+# 1. Configure AWS credentials
+aws configure --profile myprofile
+# Enter: Access Key ID, Secret Access Key, Region (e.g., us-east-1)
+
+# 2. Navigate to project
+cd c:\MCP_Server
+
+# 3. Deploy to AWS Lambda
+sam build
+sam deploy --guided --profile myprofile
+
+# 4. Get your API endpoint (from output)
+# https://xxxxx.execute-api.us-east-1.amazonaws.com/prod
+
+# 5. Test with Claude!
+```
+
+---
+
+## AWS Lambda Deployment
+
+### Step-by-Step Instructions
+
+#### 1. Install Prerequisites
+
+```powershell
+# Install AWS CLI (if not installed)
+# Download from: https://aws.amazon.com/cli/
+
+# Verify AWS CLI
+aws --version
+
+# Install SAM CLI (recommended)
+# Download from: https://docs.aws.amazon.com/serverless-application-model/
+
+# Verify SAM
+sam --version
+
+# Install .NET SDK (if not installed)
+dotnet --version
+```
+
+#### 2. Configure AWS Credentials
+
+```powershell
+aws configure --profile myprofile
+
+# Enter when prompted:
+# AWS Access Key ID: [your-access-key]
+# AWS Secret Access Key: [your-secret-key]
+# Default region: us-east-1
+# Default output format: json
+
+# Test configuration
+aws sts get-caller-identity --profile myprofile
+```
+
+#### 3. Build the Project
+
+```powershell
+cd c:\MCP_Server
+
+# Build using SAM
+sam build
+
+# Output: Build Succeeded
+```
+
+#### 4. Deploy to Lambda
+
+```powershell
+# First time deployment (guided)
+sam deploy --guided --profile myprofile
+
+# Prompts:
+# Stack name: mcp-server-stack
+# AWS Region: us-east-1
+# Confirm changes: y
+# Allow IAM role creation: y
+# Save arguments: y
+
+# Takes 3-5 minutes
+```
+
+#### 5. Get Your API Endpoint
+
+```powershell
+# After deployment, note the outputs:
+# McpServerApiEndpoint: https://xxxxx.execute-api.us-east-1.amazonaws.com/prod
+# GetMeetingTimeEndpoint: https://xxxxx.execute-api.us-east-1.amazonaws.com/prod/api/tools/getMeetingTime
+
+# Save these - you'll need them for Claude!
+```
+
+#### 6. Test the Deployment
+
+```powershell
+# Test getMeetingTime
+curl -X POST "https://YOUR-API-ID.execute-api.us-east-1.amazonaws.com/prod/api/tools/getMeetingTime" `
+  -H "Content-Type: application/json" `
+  -d '{
+    "country1": "US",
+    "country2": "UK",
+    "preferredTime": "14:00",
+    "meetingDate": "2026-12-25"
+  }'
+
+# Response shows holiday detection!
+```
+
+---
+
+## Holiday Management via Claude
+
+### Key Feature: Dynamic Holiday Updates via Natural Language
+
+Update holidays by simply typing commands to Claude Desktop - changes apply to AWS Lambda environment variables instantly!
 
 ### Setup Claude Desktop
 
-1. **Configure Claude Desktop:**
+#### 1. Configure Claude Desktop
 
-   - Edit: `%APPDATA%\Claude\claude_desktop_config.json`
+**Windows:** Edit `%APPDATA%\Claude\claude_desktop_config.json`
+**macOS:** Edit `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-   ```json
-   {
-     "mcpServers": {
-       "mcp-lambda-server": {
-         "command": "node",
-         "args": ["c:\\MCP_Server\\bridge.js"],
-         "env": {
-           "AWS_ACCESS_KEY_ID": "YOUR_KEY",
-           "AWS_SECRET_ACCESS_KEY": "YOUR_SECRET",
-           "AWS_REGION": "eu-north-1"
-         }
-       }
-     }
-   }
-   ```
-2. **Restart Claude Desktop completely** (exit from system tray)
-3. **Test:**
+```json
+{
+  "mcpServers": {
+    "mcp-lambda-server": {
+      "command": "node",
+      "args": ["c:\\MCP_Server\\bridge.js"],
+      "env": {
+        "AWS_ACCESS_KEY_ID": "YOUR_AWS_ACCESS_KEY",
+        "AWS_SECRET_ACCESS_KEY": "YOUR_AWS_SECRET_KEY",
+        "AWS_REGION": "us-east-1",
+        "LAMBDA_FUNCTION_NAME": "mcp-server-function"
+      }
+    }
+  }
+}
+```
 
-   ```
-   Find a meeting time on December 25, 2026 between US and UK at 9 AM
-   ```
+**Important:** Use AWS credentials with `lambda:UpdateFunctionConfiguration` permission.
 
-## 🛠️ Available Tools
+#### 2. Restart Claude Desktop
 
-1. **getMeetingTime** - Find optimal meeting times with holiday detection (US, UK, India, AU, JP, DE, FR, SG, BR, NZ)
-2. **updateCountryHolidays** - Dynamically update holidays via Claude
-3. **echo**, **add**, **reverse** - Utility tools
-4. **getDateTime** - Get current time in any timezone
-5. **analyzeText** - Analyze text content
+Exit Claude Desktop completely (check system tray) and restart.
 
-## 📝 Usage Examples
+---
 
-**Update Holidays:**
+## Claude Desktop Usage Examples
+
+### Example 1: Update Single Country Holiday (Replace Mode)
+
+**Claude Desktop Input:**
 
 ```
+Update US holidays to December 23-27, 2026 with timezone -05:00
+```
+
+**What Happens:**
+
+1. Claude parses your request
+2. Calls `updateCountryHolidays` tool
+3. AWS Lambda environment variable `HOLIDAYS_US` is updated
+4. New value: `[{"start":"2026-12-23T00:00-05:00","end":"2026-12-27T23:59-05:00"}]`
+5. Old holidays are **replaced** with new ones
+
+**Claude Response:**
+
+```
+✅ Updated US holidays successfully!
+Holiday period: December 23-27, 2026 (EST timezone -05:00)
+AWS Lambda environment variable HOLIDAYS_US has been updated.
+The changes are live immediately.
+```
+
+---
+
+### Example 2: Update Multiple Countries Simultaneously
+
+**Claude Desktop Input:**
+
+```
+Update US holidays to December 23-27, 2026 with timezone -05:00
 Update UK holidays to December 20-25, 2026 with timezone +00:00
 ```
 
-**Check Meeting Times:**
+**What Happens:**
+
+1. Claude processes both updates
+2. Makes two tool calls (or batch update)
+3. Updates both `HOLIDAYS_US` and `HOLIDAYS_UK` environment variables
+4. Both countries updated in parallel
+
+**Claude Response:**
 
 ```
-Find a meeting time on December 22, 2026 between UK and US at 9 AM
+✅ Updated holidays for 2 countries:
+
+US Holidays:
+- Period: December 23-27, 2026 (EST -05:00)
+- Variable: HOLIDAYS_US updated
+
+UK Holidays:
+- Period: December 20-25, 2026 (GMT +00:00)
+- Variable: HOLIDAYS_UK updated
+
+All changes are live in AWS Lambda.
 ```
 
-## 📁 Key Files
+---
 
-- `bridge.js` - MCP bridge server (connects Claude Desktop to Lambda)
-- `src/MCP.Server/` - AWS Lambda function (.NET)
-- `COMPLETE_DOCUMENTATION.md` - Full setup guide
-- `CLAUDE_HOLIDAY_UPDATE_TESTING.md` - Testing guide
-- `START_HERE.md` - Getting started
-- `docs/` - Technical documentation
+### Example 3: Append New Holiday to Existing Ones
 
-## 🚢 Deployment
+**Claude Desktop Input:**
 
-**AWS Lambda:**
+```
+Append December 31, 2026 as a holiday to existing US holidays with timezone -05:00
+```
+
+**What Happens:**
+
+1. Claude reads existing `HOLIDAYS_US` value
+2. Parses existing holiday array
+3. Adds new holiday entry: `{"start":"2026-12-31T00:00-05:00","end":"2026-12-31T23:59-05:00"}`
+4. Updates environment variable with combined array
+5. Old holidays are **preserved** and new one is **appended**
+
+**Example Before:**
+
+```json
+[
+  {"start":"2026-12-25T00:00-05:00","end":"2026-12-26T23:59-05:00"}
+]
+```
+
+**Example After:**
+
+```json
+[
+  {"start":"2026-12-25T00:00-05:00","end":"2026-12-26T23:59-05:00"},
+  {"start":"2026-12-31T00:00-05:00","end":"2026-12-31T23:59-05:00"}
+]
+```
+
+**Claude Response:**
+
+```
+✅ Appended new holiday to US holidays!
+
+Existing holidays: December 25-26, 2026
+New holiday added: December 31, 2026
+
+Total US holidays now: 2 entries
+AWS Lambda variable HOLIDAYS_US updated with combined list.
+```
+
+---
+
+### Example 4: Update with Date Range
+
+**Claude Desktop Input:**
+
+```
+Update India holidays to January 26-27, 2026 and October 2-3, 2026 with timezone +05:30
+```
+
+**What Happens:**
+
+1. Claude creates two holiday entries
+2. Updates `HOLIDAYS_INDIA` environment variable
+3. Both holiday periods included in single update
+
+**Result in Lambda:**
+
+```json
+[
+  {"start":"2026-01-26T00:00+05:30","end":"2026-01-27T23:59+05:30"},
+  {"start":"2026-10-02T00:00+05:30","end":"2026-10-03T23:59+05:30"}
+]
+```
+
+---
+
+## How It Works
+
+### Architecture Flow
+
+```
+┌─────────────────┐
+│ Claude Desktop  │  User types: "Update US holidays to Dec 23-27, 2026 with timezone -05:00"
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   bridge.js     │  Node.js bridge interprets command
+│   (MCP Bridge)  │  Calls updateCountryHolidays tool
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  AWS Lambda     │  Lambda function receives update request
+│  (MCP Server)   │  Validates format and permissions
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Lambda Env Var │  HOLIDAYS_US updated to:
+│  HOLIDAYS_US    │  [{"start":"2026-12-23T00:00-05:00","end":"2026-12-27T23:59-05:00"}]
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   ✅ Success    │  Update complete in 2-5 seconds
+│   Live Changes  │  No redeployment needed!
+└─────────────────┘
+```
+
+### Holiday Date Format
+
+Holidays are stored as JSON arrays in AWS Lambda environment variables. Each country has its own environment variable.
+
+**Format:**
+
+```json
+[
+  {
+    "start": "2026-12-23T00:00-05:00",
+    "end": "2026-12-27T23:59-05:00"
+  }
+]
+```
+
+**Date Format Components:**
+
+- `2026-12-23` - Date (YYYY-MM-DD)
+- `T00:00` - Start time (HH:MM, typically 00:00)
+- `-05:00` - Timezone offset (required, ISO 8601 format)
+- End time typically `23:59` for full day coverage
+
+### Environment Variables in AWS Lambda
+
+Each country has a dedicated environment variable:
+
+| Country     | Environment Variable | Example Value                                                           |
+| ----------- | -------------------- | ----------------------------------------------------------------------- |
+| US          | `HOLIDAYS_US`      | `[{"start":"2026-12-25T00:00-05:00","end":"2026-12-26T23:59-05:00"}]` |
+| UK          | `HOLIDAYS_UK`      | `[{"start":"2026-12-25T00:00+00:00","end":"2026-12-28T23:59+00:00"}]` |
+| India       | `HOLIDAYS_INDIA`   | `[{"start":"2026-01-26T00:00+05:30","end":"2026-01-27T23:59+05:30"}]` |
+| Australia   | `HOLIDAYS_AU`      | `[{"start":"2026-12-25T00:00+11:00","end":"2026-12-27T23:59+11:00"}]` |
+| Japan       | `HOLIDAYS_JP`      | `[{"start":"2026-01-01T00:00+09:00","end":"2026-01-03T23:59+09:00"}]` |
+| Germany     | `HOLIDAYS_DE`      | `[{"start":"2026-12-25T00:00+01:00","end":"2026-12-26T23:59+01:00"}]` |
+| France      | `HOLIDAYS_FR`      | `[{"start":"2026-12-25T00:00+01:00","end":"2026-12-26T23:59+01:00"}]` |
+| Singapore   | `HOLIDAYS_SG`      | `[{"start":"2026-01-28T00:00+08:00","end":"2026-01-29T23:59+08:00"}]` |
+| Brazil      | `HOLIDAYS_BR`      | `[{"start":"2026-12-25T00:00-03:00","end":"2026-12-26T23:59-03:00"}]` |
+| New Zealand | `HOLIDAYS_NZ`      | `[{"start":"2026-12-25T00:00+13:00","end":"2026-12-27T23:59+13:00"}]` |
+
+---
+
+## Troubleshooting
+
+### Issue 1: Claude Desktop Not Connecting to MCP Server
+
+**Symptoms:**
+
+- No MCP tools appear in Claude Desktop
+- Error messages in Claude about connection
+
+**Solutions:**
+
+1. **Verify Configuration File:**
 
 ```powershell
-.\deploy.ps1
+# Windows - Check if file exists and has correct format
+notepad %APPDATA%\Claude\claude_desktop_config.json
+
+# File should contain:
+{
+  "mcpServers": {
+    "mcp-lambda-server": {
+      "command": "node",
+      "args": ["c:\\MCP_Server\\bridge.js"],
+      "env": {
+        "AWS_ACCESS_KEY_ID": "AKIAXXXXXXXX",
+        "AWS_SECRET_ACCESS_KEY": "xxxxxxxxxxxxxxxx",
+        "AWS_REGION": "us-east-1",
+        "LAMBDA_FUNCTION_NAME": "mcp-server-function"
+      }
+    }
+  }
+}
 ```
 
-See `COMPLETE_DOCUMENTATION.md` for full deployment instructions.
+2. **Check bridge.js Path:**
 
-## 📚 Documentation
+```powershell
+# Verify file exists
+Test-Path "c:\MCP_Server\bridge.js"
+# Should return: True
+```
 
-- **[START_HERE.md](START_HERE.md)** - Getting started guide
-- **[COMPLETE_DOCUMENTATION.md](COMPLETE_DOCUMENTATION.md)** - Full setup guide
-- **[CLAUDE_HOLIDAY_UPDATE_TESTING.md](CLAUDE_HOLIDAY_UPDATE_TESTING.md)** - Testing guide
-- **[HOLIDAY_SETUP.md](HOLIDAY_SETUP.md)** - Holiday configuration
-- **[UK_HOLIDAYS_UPDATE_IMPLEMENTATION.md](UK_HOLIDAYS_UPDATE_IMPLEMENTATION.md)** - Multi-country support
-- **[docs/](docs/)** - Technical documentation
+3. **Verify Node.js:**
 
-## 🔒 Security
+```powershell
+node --version
+# Should be v22.0+
+```
 
-- No hardcoded credentials - Uses environment variables only
-- AWS SigV4 signing for secure API authentication
-- .gitignore configured to prevent credential commits
+4. **Restart Claude Properly:**
 
-## 🐛 Troubleshooting
+- Right-click Claude icon in system tray
+- Click "Quit" or "Exit"
+- Wait 5 seconds
+- Start Claude Desktop again
 
-**Bridge not connecting:**
+5. **Check Claude Logs:**
 
-1. Check Claude Desktop logs: `%APPDATA%\Claude\logs`
-2. Verify environment variables in Claude config
-3. Restart Claude Desktop completely (exit from system tray)
+```powershell
+# View logs for errors
+notepad %APPDATA%\Claude\logs\mcp-server.log
 
-**Holiday updates not working:**
+# Look for connection errors or AWS credential issues
+```
 
-- Wait 5-10 seconds for Lambda to propagate changes
-- Verify IAM permissions: `lambda:UpdateFunctionConfiguration`
+---
 
-## 🎯 Version
+### Issue 2: Holiday Updates Not Working
 
-**v1.0.0** - Production Ready
+**Symptoms:**
 
-- ✅ Multi-country holiday support
-- ✅ AWS SigV4 authentication
-- ✅ Secure credential management
-- ✅ Full Claude Desktop integration
+- Claude says update succeeded but AWS Lambda variable unchanged
+- Error: "Failed to update holidays"
+
+**Solutions:**
+
+1. **Check AWS Permissions:**
+
+```powershell
+# Test if credentials have Lambda update permissions
+aws lambda update-function-configuration \
+  --function-name mcp-server-function \
+  --environment "Variables={TEST='test'}" \
+  --profile myprofile
+
+# If this fails, you need lambda:UpdateFunctionConfiguration permission
+```
+
+2. **Verify IAM Policy:**
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:GetFunctionConfiguration"
+      ],
+      "Resource": "arn:aws:lambda:us-east-1:*:function:mcp-server-function"
+    }
+  ]
+}
+```
+
+3. **Check Holiday Format:**
+
+```powershell
+# Verify JSON is valid
+# CORRECT format:
+[{"start":"2026-12-25T00:00-05:00","end":"2026-12-26T23:59-05:00"}]
+
+# WRONG formats (will fail):
+{"start":"2026-12-25T00:00-05:00","end":"2026-12-26T23:59-05:00"}  # Missing array brackets
+[{"start":"2026-12-25","end":"2026-12-26"}]  # Missing time and timezone
+```
+
+4. **Check Lambda Logs:**
+
+```powershell
+# View Lambda execution logs
+aws logs tail /aws/lambda/mcp-server-function --follow --profile myprofile
+
+# Look for errors when Claude calls updateCountryHolidays
+```
+
+5. **Wait for Propagation:**
+
+- Changes take 2-5 seconds to propagate
+- Wait a few seconds before verifying
+- Check again:
+
+```powershell
+aws lambda get-function-configuration \
+  --function-name mcp-server-function \
+  --query 'Environment.Variables.HOLIDAYS_US'
+```
+
+---
+
+### Issue 3: Append Not Working (Holidays Being Replaced)
+
+**Symptoms:**
+
+- Used "append" but old holidays disappeared
+- Only new holiday shows up
+
+**Solutions:**
+
+1. **Use "Append" Keyword:**
+
+```
+✅ CORRECT: "Append December 31, 2026 as a holiday to existing US holidays with timezone -05:00"
+❌ WRONG:   "Update US holidays to December 31, 2026 with timezone -05:00"  (replaces!)
+```
+
+2. **Verify Append Operation:**
+
+```powershell
+# Before append
+aws lambda get-function-configuration \
+  --function-name mcp-server-function \
+  --query 'Environment.Variables.HOLIDAYS_US'
+# Output: [{"start":"2026-12-25T00:00-05:00",...}]
+
+# After append - should have BOTH holidays
+# Output: [{"start":"2026-12-25T00:00-05:00",...},{"start":"2026-12-31T00:00-05:00",...}]
+```
+
+3. **If Append Failed, Manually Fix:**
+
+```powershell
+# Combine old and new holidays manually
+aws lambda update-function-configuration \
+  --function-name mcp-server-function \
+  --environment "Variables={
+    HOLIDAYS_US='[{\"start\":\"2026-12-25T00:00-05:00\",\"end\":\"2026-12-26T23:59-05:00\"},{\"start\":\"2026-12-31T00:00-05:00\",\"end\":\"2026-12-31T23:59-05:00\"}]'
+  }"
+```
+
+---
+
+### Debugging Checklist
+
+When holiday updates aren't working, check:
+
+- [ ] Claude Desktop configuration file exists and is valid JSON
+- [ ] AWS credentials are correct and have Lambda permissions
+- [ ] Lambda function name is "mcp-server-function" (or correct name)
+- [ ] AWS region matches in config and Lambda deployment
+- [ ] Holiday format includes timezone offset (e.g., -05:00)
+- [ ] JSON format is valid array: `[{...}]` not `{...}`
+- [ ] Waited 2-5 seconds for changes to propagate
+- [ ] Node.js v22+ is installed
+- [ ] bridge.js file exists at specified path
+- [ ] Claude Desktop fully restarted (quit from system tray)
+
+---
+
+### Getting Debug Information
+
+```powershell
+# 1. Check Claude logs
+type %APPDATA%\Claude\logs\mcp-server.log
+
+# 2. Check AWS Lambda configuration
+aws lambda get-function-configuration \
+  --function-name mcp-server-function \
+  --profile myprofile
+
+# 3. Check all environment variables
+aws lambda get-function-configuration \
+  --function-name mcp-server-function \
+  --profile myprofile \
+  --query 'Environment.Variables'
+
+# 4. Test Lambda directly
+aws lambda invoke \
+  --function-name mcp-server-function \
+  --payload '{"test":"data"}' \
+  --profile myprofile \
+  response.json
+
+# 5. View Lambda execution logs
+aws logs tail /aws/lambda/mcp-server-function \
+  --follow \
+  --profile myprofile
+```
+
+---
+
+## Summary
+
+### ✅ What You Deployed
+
+- **AWS Lambda Function** - Serverless compute running MCP Server
+- **API Gateway** - HTTP endpoints for tool access
+- **CloudWatch Logs** - Monitoring and debugging
+- **Environment Variables** - Dynamic holiday storage (HOLIDAYS_US, HOLIDAYS_UK, etc.)
+
+### ✅ What You Can Do via Claude Desktop
+
+1. **Update Single Country Holiday**
+
+   ```
+   "Update US holidays to December 23-27, 2026 with timezone -05:00"
+   ```
+2. **Update Multiple Countries at Once**
+
+   ```
+   "Update US holidays to December 23-27, 2026 with timezone -05:00
+    Update UK holidays to December 20-25, 2026 with timezone +00:00"
+   ```
+3. **Append New Holiday to Existing**
+
+   ```
+   "Append December 31, 2026 as a holiday to existing US holidays with timezone -05:00"
+   ```
+4. **Clear All Holidays**
+
+   ```
+   "Clear all US holidays"
+   ```
+
+---
+
+## Configuration
+
+### Configuration Files
+
+The server uses hierarchical configuration:
+
+1. **appsettings.json** - Default settings
+2. **appsettings.Production.json** - Production overrides
+3. **Environment Variables** - Runtime overrides (highest priority)
