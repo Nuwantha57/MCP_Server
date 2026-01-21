@@ -695,8 +695,6 @@ aws logs tail /aws/lambda/mcp-server-function \
 
 ---
 
-## Configuration
-
 ### Configuration Files
 
 The server uses hierarchical configuration:
