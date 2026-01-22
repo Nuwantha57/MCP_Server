@@ -103,20 +103,71 @@ sam --version
 dotnet --version
 ```
 
-#### 2. Configure AWS Credentials
+#### 2. Create IAM User and Get AWS Credentials
+
+**Important:** You need to create an **IAM user** explicitly to get Access Key ID and Secret Access Key. AWS root account credentials are not recommended for deployments.
+
+##### Step 2a: Create IAM User in AWS Console
+
+1. **Log in to AWS Console**
+   - Go to https://console.aws.amazon.com/
+   - Sign in with your AWS account (root account)
+
+2. **Navigate to IAM**
+   - Search for "IAM" in the AWS console search bar
+   - Click on "Identity and Access Management (IAM)"
+
+3. **Create New User**
+   - In the left sidebar, click **Users**
+   - Click **Create user** button
+   - Enter username: `mcp-server-deployer` (or any name you prefer)
+   - Click **Next**
+
+4. **Set Permissions**
+   - Select **Attach policies directly**
+   - Search for and select these policies:
+     - `AWSLambdaFullAccess` - For Lambda management
+     - `AmazonAPIGatewayAdministrator` - For API Gateway
+     - `IAMFullAccess` - For IAM role creation
+     - `CloudFormationFullAccess` - For CloudFormation stack management
+   - Click **Next** → **Create user**
+
+5. **Generate Access Keys**
+   - Click on the newly created user from the Users list
+   - Click **Security credentials** tab
+   - Under **Access keys**, click **Create access key**
+   - Select **Command Line Interface (CLI)**
+   - Check "I understand..." checkbox
+   - Click **Next**
+   - Copy and **save securely** your:
+     - **Access Key ID** (starts with `AKIA...`)
+     - **Secret Access Key** (long random string - only shown once!)
+   - ⚠️ **Keep these secret!** Anyone with these keys can access your AWS account
+
+##### Step 2b: Configure AWS CLI with Your Credentials
 
 ```powershell
+# Run the configuration command
 aws configure --profile myprofile
 
-# Enter when prompted:
-# AWS Access Key ID: [your-access-key]
-# AWS Secret Access Key: [your-secret-key]
-# Default region: us-east-1
+# When prompted, enter:
+# AWS Access Key ID: AKIA... (the one you copied above)
+# AWS Secret Access Key: [paste the secret key from above]
+# Default region name: us-east-1 (or your preferred region)
 # Default output format: json
 
-# Test configuration
+# Test your credentials
 aws sts get-caller-identity --profile myprofile
+
+# Expected output:
+# {
+#     "UserId": "AIDAI...",
+#     "Account": "123456789012",
+#     "Arn": "arn:aws:iam::123456789012:user/mcp-server-deployer"
+# }
 ```
+
+**Note:** The credentials are stored locally in `~/.aws/credentials` (never commit to git!)
 
 #### 3. Build the Project
 
