@@ -57,21 +57,25 @@ Result: New holiday added to existing US holiday list
 ## Quick Start
 
 ```powershell
-# 1. Configure AWS credentials
+# 1. Clone the repository
+git clone https://github.com/Nuwantha57/MCP_Server.git
+cd MCP_Server
+
+# 2. Configure AWS credentials
 aws configure --profile myprofile
 # Enter: Access Key ID, Secret Access Key, Region (e.g., us-east-1)
 
-# 2. Navigate to project
+# 3. Navigate to project
 cd c:\MCP_Server
 
-# 3. Deploy to AWS Lambda
+# 4. Deploy to AWS Lambda
 sam build
 sam deploy --guided --profile myprofile
 
-# 4. Get your API endpoint (from output)
+# 5. Get your API endpoint (from output)
 # https://xxxxx.execute-api.us-east-1.amazonaws.com/prod
 
-# 5. Test with Claude!
+# 6. Test with Claude!
 ```
 
 ---
@@ -204,6 +208,8 @@ Update holidays by simply typing commands to Claude Desktop - changes apply to A
 #### 2. Restart Claude Desktop
 
 Exit Claude Desktop completely (check system tray) and restart.
+
+Now you can see the connectors by clicking the **(+)** icon. If the connector is not visible, please reinstall the Claude desktop application.
 
 ---
 
