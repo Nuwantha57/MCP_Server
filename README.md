@@ -2,18 +2,7 @@
 
 ---
 
-## Table of Contents
-
-1. [Overview](#overview)
-2. [System Requirements](#system-requirements)
-3. [Quick Start](#quick-start)
-4. [AWS Lambda Deployment](#aws-lambda-deployment)
-5. [Holiday Management via Claude](#holiday-management-via-claude)
-6. [Claude Desktop Usage Examples](#claude-desktop-usage-examples)
-7. [How It Works](#how-it-works)
-8. [Configuration](#configuration)
-
----
+## Repository Link: https://github.com/Nuwantha57/MCP_Server
 
 ## Overview
 
@@ -569,48 +558,6 @@ aws lambda get-function-configuration \
 
 ---
 
-### Issue 3: Append Not Working (Holidays Being Replaced)
-
-**Symptoms:**
-
-- Used "append" but old holidays disappeared
-- Only new holiday shows up
-
-**Solutions:**
-
-1. **Use "Append" Keyword:**
-
-```
-✅ CORRECT: "Append December 31, 2026 as a holiday to existing US holidays with timezone -05:00"
-❌ WRONG:   "Update US holidays to December 31, 2026 with timezone -05:00"  (replaces!)
-```
-
-2. **Verify Append Operation:**
-
-```powershell
-# Before append
-aws lambda get-function-configuration \
-  --function-name mcp-server-function \
-  --query 'Environment.Variables.HOLIDAYS_US'
-# Output: [{"start":"2026-12-25T00:00-05:00",...}]
-
-# After append - should have BOTH holidays
-# Output: [{"start":"2026-12-25T00:00-05:00",...},{"start":"2026-12-31T00:00-05:00",...}]
-```
-
-3. **If Append Failed, Manually Fix:**
-
-```powershell
-# Combine old and new holidays manually
-aws lambda update-function-configuration \
-  --function-name mcp-server-function \
-  --environment "Variables={
-    HOLIDAYS_US='[{\"start\":\"2026-12-25T00:00-05:00\",\"end\":\"2026-12-26T23:59-05:00\"},{\"start\":\"2026-12-31T00:00-05:00\",\"end\":\"2026-12-31T23:59-05:00\"}]'
-  }"
-```
-
----
-
 ### Debugging Checklist
 
 When holiday updates aren't working, check:
@@ -692,13 +639,3 @@ aws logs tail /aws/lambda/mcp-server-function \
    ```
    "Clear all US holidays"
    ```
-
----
-
-### Configuration Files
-
-The server uses hierarchical configuration:
-
-1. **appsettings.json** - Default settings
-2. **appsettings.Production.json** - Production overrides
-3. **Environment Variables** - Runtime overrides (highest priority)
