@@ -1,0 +1,56 @@
+name: Build and deploy to AWS App Runner
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+          docker build -t "$IMAGE_URI" .
+
+      - name: Create ECR repository (if missing)
+        run: |
+          aws ecr describe-repositories --repository-names "${{ secrets.ECR_REPOSITORY }}" || aws ecr create-repository --repository-name "${{ secrets.ECR_REPOSITORY }}"
+
+      - name: Push image to ECR
+        run: |
+          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+          docker push "$IMAGE_URI"
+
+      - name: Create or update App Runner service
+        env:
+          SERVICE_NAME: ${{ secrets.APP_RUNNER_SERVICE_NAME }}
+          IMAGE_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+        run: |
+          # Check for existing service by name
+          ARN=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='${SERVICE_NAME}'].ServiceArn" --output text || true)
+          if [ -z "$ARN" ]; then
+            echo "Creating App Runner service ${SERVICE_NAME} using image ${IMAGE_URI}"
+            aws apprunner create-service --service-name "${SERVICE_NAME}" --source-configuration ImageRepository={ImageIdentifier="${IMAGE_URI}",ImageRepositoryType=ECR,ImageConfiguration={Port="80"}} --instance-configuration Cpu="1024",Memory="2048"
+          else
+            echo "Updating App Runner service ${SERVICE_NAME} (${ARN}) to use image ${IMAGE_URI}"
+            aws apprunner update-service --service-arn "$ARN" --source-configuration ImageRepository={ImageIdentifier="${IMAGE_URI}",ImageRepositoryType=ECR,ImageConfiguration={Port="80"}}
+          fi
