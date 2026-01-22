@@ -110,20 +110,21 @@ dotnet --version
 ##### Step 2a: Create IAM User in AWS Console
 
 1. **Log in to AWS Console**
+
    - Go to https://console.aws.amazon.com/
    - Sign in with your AWS account (root account)
-
 2. **Navigate to IAM**
+
    - Search for "IAM" in the AWS console search bar
    - Click on "Identity and Access Management (IAM)"
-
 3. **Create New User**
+
    - In the left sidebar, click **Users**
    - Click **Create user** button
    - Enter username: `mcp-server-deployer` (or any name you prefer)
    - Click **Next**
-
 4. **Set Permissions**
+
    - Select **Attach policies directly**
    - Search for and select these policies:
      - `AWSLambdaFullAccess` - For Lambda management
@@ -131,8 +132,8 @@ dotnet --version
      - `IAMFullAccess` - For IAM role creation
      - `CloudFormationFullAccess` - For CloudFormation stack management
    - Click **Next** → **Create user**
-
 5. **Generate Access Keys**
+
    - Click on the newly created user from the Users list
    - Click **Security credentials** tab
    - Under **Access keys**, click **Create access key**
@@ -255,6 +256,40 @@ Update holidays by simply typing commands to Claude Desktop - changes apply to A
 ```
 
 **Important:** Use AWS credentials with `lambda:UpdateFunctionConfiguration` permission.
+
+#### 1b. API Key Configuration
+
+The MCP Server uses an API key for authentication.
+
+**To Change the API Key:**
+
+1. Edit [src/MCP.Server/appsettings.json](src/MCP.Server/appsettings.json)
+2. Update the `ApiKey` value:
+
+```json
+{
+  "Security": {
+    "ApiKey": "your-custom-api-key-here",
+    "RequireHttps": false,
+    "AllowedOrigins": ["http://localhost:3000", "https://localhost:3000"]
+  }
+}
+```
+
+3. Rebuild and redeploy:
+
+```powershell
+sam build
+sam deploy
+```
+
+**Using the API Key:**
+
+Include the API key in your request header:
+
+```powershell
+-H "x-api-key: your-custom-api-key-here"
+```
 
 #### 2. Restart Claude Desktop
 
