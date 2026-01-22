@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'MCP Server Lambda Function with Holiday Support for getMeetingTime'
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: dotnet8
+    Environment:
+      Variables:
+        # Holiday configuration format: JSON array with start/end dates
+        # Example: [{"start":"2022-12-25T05:00+13:00","end":"2022-12-28T18:00+13:00"}]
+        HOLIDAYS_UK: '[{"start":"2022-12-25T00:00+00:00","end":"2022-12-28T23:59+00:00"},{"start":"2023-01-01T00:00+00:00","end":"2023-01-02T23:59+00:00"}]'
+        HOLIDAYS_US: '[{"start":"2022-12-25T00:00-05:00","end":"2022-12-26T23:59-05:00"},{"start":"2023-01-01T00:00-05:00","end":"2023-01-02T23:59-05:00"}]'
+        HOLIDAYS_INDIA: '[{"start":"2022-12-25T00:00+05:30","end":"2022-12-26T23:59+05:30"}]'
+        HOLIDAYS_AUSTRALIA: '[{"start":"2022-12-25T00:00+11:00","end":"2022-12-27T23:59+11:00"}]'
+        HOLIDAYS_JAPAN: '[{"start":"2022-12-25T00:00+09:00","end":"2022-12-26T23:59+09:00"}]'
+
+Resources:
+  # Lambda Function (using basic execution role)
+  McpServerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: mcp-server-function
+      CodeUri: ./src/MCP.Server/
+      Handler: MCP.Server::MCP.Server.LambdaEntrypoint::HandleAsync
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        # API Gateway HTTP endpoints
+        ToolsList:
+          Type: Api
+          Properties:
+            RestApiId: !Ref McpServerApi
+            Path: /api/tools/{proxy+}
+            Method: POST
+        Health:
+          Type: Api
+          Properties:
+            RestApiId: !Ref McpServerApi
+            Path: /health
+            Method: GET
+
+  # API Gateway
+  McpServerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: mcp-server-api
+      StageName: prod
+      MethodSettings:
+        - ResourcePath: '/*'
+          HttpMethod: '*'
+          LoggingLevel: INFO
+          DataTraceEnabled: true
+          MetricsEnabled: true
+
+  # CloudWatch Log Group
+  McpServerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${McpServerFunction}'
+      RetentionInDays: 7
+
+Outputs:
+  McpServerFunctionArn:
+    Description: ARN of the MCP Server Lambda function
+    Value: !GetAtt McpServerFunction.Arn
+  
+  McpServerApiEndpoint:
+    Description: API Gateway endpoint URL for the MCP Server
+    Value: !Sub 'https://${McpServerApi}.execute-api.${AWS::Region}.amazonaws.com/prod'
+  
+  GetMeetingTimeEndpoint:
+    Description: Direct endpoint for getMeetingTime tool
+    Value: !Sub 'https://${McpServerApi}.execute-api.${AWS::Region}.amazonaws.com/prod/api/tools/getMeetingTime'

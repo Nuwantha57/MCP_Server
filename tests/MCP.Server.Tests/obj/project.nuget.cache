@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "eo0RLshBhBU=",
+  "dgSpecHash": "i6O3PeGIynw=",
   "success": true,
   "projectFilePath": "C:\\MCP_Server\\tests\\MCP.Server.Tests\\MCP.Server.Tests.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\amazon.lambda.apigatewayevents\\2.7.3\\amazon.lambda.apigatewayevents.2.7.3.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\amazon.lambda.core\\2.2.0\\amazon.lambda.core.2.2.0.nupkg.sha512",
+    "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\amazon.lambda.serialization.systemtextjson\\2.3.0\\amazon.lambda.serialization.systemtextjson.2.3.0.nupkg.sha512",
     "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\microsoft.aspnetcore.mvc.testing\\10.0.0\\microsoft.aspnetcore.mvc.testing.10.0.0.nupkg.sha512",
     "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\microsoft.aspnetcore.testhost\\10.0.0\\microsoft.aspnetcore.testhost.10.0.0.nupkg.sha512",
     "C:\\Users\\NuwanthaKarunarathna\\.nuget\\packages\\microsoft.codecoverage\\17.6.3\\microsoft.codecoverage.17.6.3.nupkg.sha512",

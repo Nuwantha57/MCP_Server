@@ -2,6 +2,48 @@
   "version": 3,
   "targets": {
     "net10.0": {
+      "Amazon.Lambda.APIGatewayEvents/2.7.3": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Amazon.Lambda.APIGatewayEvents.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Amazon.Lambda.APIGatewayEvents.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Amazon.Lambda.Core/2.2.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Amazon.Lambda.Core.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Amazon.Lambda.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Amazon.Lambda.Serialization.SystemTextJson/2.3.0": {
+        "type": "package",
+        "dependencies": {
+          "Amazon.Lambda.Core": "2.1.0"
+        },
+        "compile": {
+          "lib/net6.0/Amazon.Lambda.Serialization.SystemTextJson.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Amazon.Lambda.Serialization.SystemTextJson.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.AspNetCore.Mvc.Testing/10.0.0": {
         "type": "package",
         "dependencies": {
@@ -1393,8 +1435,11 @@
       },
       "MCP.Server/1.0.0": {
         "type": "project",
-        "framework": ".NETCoreApp,Version=v10.0",
+        "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
+          "Amazon.Lambda.APIGatewayEvents": "2.7.3",
+          "Amazon.Lambda.Core": "2.2.0",
+          "Amazon.Lambda.Serialization.SystemTextJson": "2.3.0",
           "ModelContextProtocol": "0.5.0-preview.1",
           "ModelContextProtocol.AspNetCore": "0.5.0-preview.1",
           "Serilog.AspNetCore": "7.0.0",
@@ -1413,6 +1458,58 @@
     }
   },
   "libraries": {
+    "Amazon.Lambda.APIGatewayEvents/2.7.3": {
+      "sha512": "CXmiXdwuSXSJA0YH+7OJqG2uGDnhDcKkN2ei2u2/kdRFK+RH8JC5GbdechdJoldpogxHdHy12TuAfqqKSC67Nw==",
+      "type": "package",
+      "path": "amazon.lambda.apigatewayevents/2.7.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "amazon.lambda.apigatewayevents.2.7.3.nupkg.sha512",
+        "amazon.lambda.apigatewayevents.nuspec",
+        "lib/net8.0/Amazon.Lambda.APIGatewayEvents.dll",
+        "lib/net8.0/Amazon.Lambda.APIGatewayEvents.xml",
+        "lib/netcoreapp3.1/Amazon.Lambda.APIGatewayEvents.dll",
+        "lib/netcoreapp3.1/Amazon.Lambda.APIGatewayEvents.xml",
+        "lib/netstandard2.0/Amazon.Lambda.APIGatewayEvents.dll",
+        "lib/netstandard2.0/Amazon.Lambda.APIGatewayEvents.xml"
+      ]
+    },
+    "Amazon.Lambda.Core/2.2.0": {
+      "sha512": "DHqKeD1CYocP0t1dJC/NaXfu+5k6AoqnQ1Hlu/J2mXpLpCyeJfY+tIqT5fpruDarUlU0NtdIH8zSkCjeinyb1A==",
+      "type": "package",
+      "path": "amazon.lambda.core/2.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "amazon.lambda.core.2.2.0.nupkg.sha512",
+        "amazon.lambda.core.nuspec",
+        "lib/net6.0/Amazon.Lambda.Core.dll",
+        "lib/net6.0/Amazon.Lambda.Core.xml",
+        "lib/net8.0/Amazon.Lambda.Core.dll",
+        "lib/net8.0/Amazon.Lambda.Core.xml",
+        "lib/netstandard2.0/Amazon.Lambda.Core.dll",
+        "lib/netstandard2.0/Amazon.Lambda.Core.xml"
+      ]
+    },
+    "Amazon.Lambda.Serialization.SystemTextJson/2.3.0": {
+      "sha512": "qgFCDJp5lyUNqCq1z18U7fZ/+rmMyw6RJf9nKfnJrf79YupDj02klQAjxymEYN66NykWXyc68SGkow6fy53hfg==",
+      "type": "package",
+      "path": "amazon.lambda.serialization.systemtextjson/2.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "amazon.lambda.serialization.systemtextjson.2.3.0.nupkg.sha512",
+        "amazon.lambda.serialization.systemtextjson.nuspec",
+        "lib/net6.0/Amazon.Lambda.Serialization.SystemTextJson.dll",
+        "lib/net6.0/Amazon.Lambda.Serialization.SystemTextJson.xml",
+        "lib/netcoreapp3.1/Amazon.Lambda.Serialization.SystemTextJson.dll",
+        "lib/netcoreapp3.1/Amazon.Lambda.Serialization.SystemTextJson.xml"
+      ]
+    },
     "Microsoft.AspNetCore.Mvc.Testing/10.0.0": {
       "sha512": "Gdtv34h2qvynOEu+B2+6apBiiPhEs39namGax02UgaQMRetlxQ88p2/jK1eIdz3m1NRgYszNBN/jBdXkucZhvw==",
       "type": "package",
